@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgb(173, 164, 164);
+        }
+        stage {
+            border: 2px solid rgb(65, 64, 64);
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+        row {
+            display: flex;
+            flex-direction: row;
+        }
+        col {
+            border: 2px solid rgb(65, 64, 64);
+            width: 6vmin;
+            height: 6vmin;
+        }
+        col[data-state="0"] {background: #fff;}
+        col[data-state="1"] {background: rgb(176, 99, 248);}
+        col[data-state="2"] {background:  #fff url(Heart.png) center / contain no-repeat;}
+        col[data-state="3"] {background:  #fff url(bule1.png) center / contain no-repeat;}
+        col[data-state="4"] {background:  #fff url(pink.png) center / contain no-repeat;}
+        col[data-state="5"] {background: rgb(194, 158, 0);}
+    </style>
+    <title>迷路</title>
+</head>
+    <stage></stage>
+    <script>
+
+            let startTime;
+            let timer;
+            startTime = new Date();
+            
+            startTimer();
+            
+            function startTimer () {
+                timer = setInterval(showSecond, 1000);
+              
+            }
+            
+            function showSecond () {
+                let nowTime = new Date();
+                let elapsedTime = Math.floor((nowTime - startTime)/ 1000);
+                let str = elapsedTime + "秒経過";
+                let re = document.getElementById('result');
+                re.innerHTML = str;
+            }
+        //0=歩ける場所　1 ブロック(歩けない場所)　2 ゴール　3 青ペンギン 4 ピンクペンギン　5 壁
+        const state = [
+            [5, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 5],
+            [5, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5],
+            [5, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 5],
+            [5, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 5],
+            [5, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 5],
+            [5, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 5],
+            [5, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 5],
+            [5, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 5],
+            [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 5],
+            [5, 0, 1, 0, 0, 0, 0, 4, 1, 3, 0, 0, 0, 0, 0, 0, 5],
+        ];
+        function render () {
+            requestAnimationFrame(render);
+
+
+            const stage = document.querySelector('stage');
+            stage.innerHTML = '';
+
+            for (let i=0; i<state.length; i++) {
+                const row = document.createElement('row');
+                stage.appendChild(row);
+
+                for (let j=0; j<state[i].length; j++) {
+                    const col = document.createElement('col');
+                    col.setAttribute('data-state', state[i][j]);
+                    row.appendChild(col);
+                }
+            }
+        }
+        render();
+
+        function getState (row, col) {
+            if (state[row] === undefined) return null;
+            if (state[row][col] === undefined) return null;
+            return state[row][col];
+        }
+        function setState (row, col, val) {
+            if (state[row] === undefined) return null;
+            if (state[row][col] === undefined) return null;
+            state[row][col] = val;
+        }
+        function move (row1, col1, row2, col2) {
+            if (getState(row2, col2) === 0) {
+                setState(row2, col2, getState(row1, col1));
+                setState(row1, col1, 0);
+            }
+        }
+        document.addEventListener('keydown', (event) => {
+            const r1 = state.findIndex(row => row.includes(3));
+            const c1 = state[r1].findIndex(col => col === 3);
+            const r2 = state.findIndex(row => row.includes(4));
+            const c2 = state[r2].findIndex(col => col === 4);
+            console.log(r1);
+            console.log(c1);
+            console.log(r2);
+            console.log(c2);
+
+            if (event.key === 'ArrowUp') {
+                move (r1, c1, r1 - 1, c1);
+                move (r2, c2, r2 - 1, c2);
+            }
+
+            if (event.key === 'ArrowDown') {
+                move (r1, c1, r1 + 1, c1);
+                move (r2, c2, r2 + 1, c2);
+            }
+
+            if (event.key === 'ArrowLeft') {
+                move (r1, c1, r1, c1 - 1);
+                move (r2, c2, r2, c2 + 1);
+            }
+
+            if (event.key === 'ArrowRight') {
+                move (r1, c1, r1, c1 + 1);
+                move (r2, c2, r2, c2 - 1);
+            }
+          
+
+            if (r1 === 0 && c1 === 9 && r2 === 1 && c2 === 7) {
+                alert("GAMECLEAR!" + elapsedTime + "秒!");
+                document.location.reload();
+                clearInterval(interval);
+            }
+            if (r1 === 0 && c1 === 10 && r2 === 0 && c2 === 7) {
+                alert("GAMECLEAR!" + elapsedTime + "秒!");
+                document.location.reload();
+                clearInterval(interval);
+            }
+        });
+
+    </script>
+    <p id="result">START</p>
+</body>
+</html>
